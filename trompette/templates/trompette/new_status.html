@@ -1,0 +1,5 @@
+<form method="POST" action="{%url 'new_status' %}">
+  {% csrf_token %}
+  <textarea name="status"></textarea>
+  <input type="submit" value="Send"/>
+</from>

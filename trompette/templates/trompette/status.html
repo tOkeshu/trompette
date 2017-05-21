@@ -1,0 +1,14 @@
+{% extends partial|yesno:"trompette/empty.html,trompette/base.html" %}
+
+{% block content %}
+  <ul>
+
+    {% for status in statuses %}
+      <li id="{{status.id}}">
+        {% include 'trompette/_one_status.html' %}
+      </li>
+    {% endfor %}
+  </ul>
+{% endblock %}
+
+

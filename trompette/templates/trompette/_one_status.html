@@ -1,0 +1,58 @@
+{% load trompette_extras %}
+
+<div class="box" style="margin-bottom: 5px">
+
+  {% if status.boosted_at %}
+    <div class="columns">
+      <div class="column is-narrow">
+        <figure class="image is-32x32" style="margin-left: 25%; margin-right: 25%">
+          <img src="http://bulma.io/images/placeholders/32x32.png">
+        </figure>
+      </div>
+      <div class="level">
+        <div class="column">
+          <p>boosted by {{status.boosted_from.username}}</p>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="columns">
+    <div class="column is-narrow">
+      <figure class="image is-64x64">
+        <img src="http://bulma.io/images/placeholders/64x64.png">
+      </figure>
+    </div>
+    <div class="level">
+      <div class="column">
+        <p class="title is-4">{{status.account.username}}</p>
+        <p class="subtitle is-5">@{{status.account.username}}</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="content is-large" style="text-align: justify">
+    <p>{{status.content|as_html|safe}}</p>
+  </div>
+
+  <div class="content is-small has-text-centered">
+    <a class="to-status" href="{% url 'status' status.id %}#{{status.id}}">
+      {{status.created_at|timesince}} ago
+    </a>
+  </div>
+
+  <div class="level">
+    <!-- <a class="level-item" href="{% url 'reply' status.id %}">Reply</a> -->
+    <a class="level-item to-notifications" href="{% url 'user_notif' %}">Notifications</a>
+    <form class="level-item" action="{% url 'boost' status.id %}" method="POST">
+      {% csrf_token %}
+      <input type="submit" value="Boost"/>
+    </form>
+    <form class="level-item" action="{% url 'follow' status.account.username %}" method="POST">
+      {% csrf_token %}
+      <input type="submit" value="Follow"/>
+    </form>
+  </div>
+
+</div>

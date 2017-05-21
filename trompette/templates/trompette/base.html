@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% block title %}<title>Trompette</title>{% endblock %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'trompette/bulma.css' %}"/>
+</head>
+
+<body>
+  <section class="section">
+    <div class="columns">
+      <div class="column">
+        {% block content %}<!-- default content text (typically empty) -->{% endblock %}
+      </div>
+    </div>
+  </section>
+</body>
+</html>
