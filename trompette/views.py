@@ -47,3 +47,20 @@ def status(request, status_id, partial=False):
         "partial": partial
     })
 
+@login_required
+def boost(request, status_id):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    status = get_object_or_404(Status, pk=status_id)
+    boost  = Boost(account=request.user.account, status=status, at=now())
+    boost.save()
+    return HttpResponseRedirect(reverse('status', args=(status.id,)))
+
+@login_required
+def reply(request, status_id):
+    status = get_object_or_404(Status, pk=status_id)
+    # Only GET requests, if you're looking for the POST request, it is handled by new_status
+    if request.method == "GET":
+        return render(request, "trompette/reply.html", {"status": status})
+

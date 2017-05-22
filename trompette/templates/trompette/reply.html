@@ -1,0 +1,13 @@
+{% extends "trompette/base.html" %}
+
+{% block content %}
+
+{{status.content}}
+<form method="POST" action="{%url 'new_status' %}">
+  {% csrf_token %}
+  <input type="hidden" name="in_reply_to_id" value="{{status.id}}">
+  <textarea name="status">@{{status.account.username}}</textarea>
+  <input type="submit" value="Send"/>
+</from>
+
+{% endblock %}
