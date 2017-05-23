@@ -64,3 +64,37 @@ def reply(request, status_id):
     if request.method == "GET":
         return render(request, "trompette/reply.html", {"status": status})
 
+@pjaxable
+def user_tl(request, username, partial=False):
+    account  = Account.objects.get(username=username)
+    statuses = set(account.statuses.select_related('account').all())
+    boosts   = Boost.objects.select_related('account', 'status') \
+                            .filter(account=account).all()       \
+                            .prefetch_related('status__account')
+
+    for status in statuses:
+        status.boosted_at = None
+    for boost in boosts:
+        status = boost.status
+        status.boosted_from = boost.account
+        status.boosted_at   = boost.at
+        statuses.add(status)
+
+    statuses = sorted(statuses, key=lambda s: s.boosted_at or s.created_at, reverse=True)
+
+    return render(request, "trompette/timeline.html", {
+        "statuses": statuses,
+        "partial": partial
+    })
+
+def follow(request, username):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    my_account = request.user.account
+    target     = get_object_or_404(Account, username)
+    my_account.following.add(target)
+
+    url = reverse('account', args=(target.id,))
+    return HttpResponseRedirect(url)
+
