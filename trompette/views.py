@@ -87,6 +87,15 @@ def user_tl(request, username, partial=False):
         "partial": partial
     })
 
+@pjaxable
+def tag_tl(request, hashtag, partial=True):
+    tag = get_object_or_404(Tag, name=hashtag)
+    statuses = tag.statuses.order_by('-created_at')
+    return render(request, "trompette/timeline.html", {
+        "statuses": statuses,
+        "partial": partial
+    })
+
 def follow(request, username):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
