@@ -64,6 +64,36 @@ def reply(request, status_id):
     if request.method == "GET":
         return render(request, "trompette/reply.html", {"status": status})
 
+@login_required
+def home_tl(request, partial=False):
+    # take the last n statuses from my bubble
+    # take the last n boosts from my bubble
+    # combine the two, deduplicate, sort by date
+
+    my_account = request.user.account
+    following  = list(my_account.following.all())
+    bubble = following + [my_account]
+
+    statuses = set(Status.objects.select_related('account').filter(account__in=bubble).all())
+    boosts = Boost.objects.select_related('account', 'status') \
+                          .filter(account__in=bubble).all()    \
+                          .prefetch_related('status__account')
+
+    for status in statuses:
+        status.boosted_at = None
+    for boost in boosts:
+        status = boost.status
+        status.boosted_from = boost.account
+        status.boosted_at   = boost.at
+        statuses.add(status)
+
+    statuses = sorted(statuses, key=lambda s: s.boosted_at or s.created_at, reverse=True)
+
+    return render(request, "trompette/timeline.html", {
+        "statuses": statuses,
+        "partial": partial
+    })
+
 @pjaxable
 def user_tl(request, username, partial=False):
     account  = Account.objects.get(username=username)
