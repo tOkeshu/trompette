@@ -126,6 +126,25 @@ def tag_tl(request, hashtag, partial=True):
         "partial": partial
     })
 
+@pjaxable
+def user_notif(request, partial=False):
+    my_account    = request.user.account
+    notifications = my_account.notifications.all()
+    boosts        = Boost.objects.filter(status__account=my_account)
+
+    for boost in boosts:
+        status = boost.status
+        status.boosted_from = boost.account
+        status.boosted_at   = boost.at
+
+    notifications = chain(notifications, boosts)
+    notifications = sorted(notifications, key=lambda n: n.at, reverse=True)
+
+    return render(request, "trompette/notifications.html", {
+        "notifications": notifications,
+        "partial": partial
+    })
+
 def follow(request, username):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])

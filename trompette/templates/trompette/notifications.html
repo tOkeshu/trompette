@@ -1,0 +1,22 @@
+{% extends partial|yesno:"trompette/empty.html,trompette/base.html" %}
+
+{% block content %}
+  <ul>
+  {% for notification in notifications %}
+    <li>
+      {% if notification.mention %}
+        {% include "trompette/_one_status.html" with status=notification.mention %}
+      {% endif %}
+
+      {% if notification.follow %}
+        {% include "trompette/_one_follow.html" with account=notification.follow %}
+      {% endif %}
+
+      {% if notification.status %}
+        {% include "trompette/_one_status.html" with status=notification.status %}
+      {% endif %}
+    </li>
+  {% endfor %}
+  </ul>
+{% endblock %}
+

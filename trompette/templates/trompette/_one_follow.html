@@ -1,0 +1,29 @@
+<div class="section"
+     style="margin-bottom: 5px;">
+
+  <div class="columns">
+    <div class="column is-narrow">
+      <figure class="image is-64x64">
+        <img src="http://bulma.io/images/placeholders/64x64.png">
+      </figure>
+    </div>
+    <div class="level">
+      <div class="column">
+        <p class="title is-4">{{account.username}}</p>
+        <p class="subtitle is-5">@{{account.username}}</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="content">
+    <p>{{account.username}} follows you</p>
+  </div>
+
+  <div class="content is-small has-text-centered">
+    <a>
+      {{notification.at|timesince}} ago
+    </a>
+  </div>
+</div>
+
