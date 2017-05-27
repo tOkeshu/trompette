@@ -3,9 +3,10 @@ from django.contrib import admin
 from django.contrib.staticfiles import views
 
 from .views import new_status, status, boost, reply, follow
-from .views import home_tl, user_notif, user_tl, tag_tl
+from .views import homepage, home_tl, user_notif, user_tl, tag_tl
 
 urlpatterns = [
+    url(r'^$', homepage, name='homepage'),
     url(r'^accounts/', include('django.contrib.auth.urls')),
 
     url(r'^web/statuses/new', new_status, name="new_status"),

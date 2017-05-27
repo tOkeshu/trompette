@@ -117,6 +117,15 @@ def user_tl(request, username, partial=False):
         "partial": partial
     })
 
+@login_required
+def homepage(request):
+    response1 = home_tl(request, partial=True)
+    response2 = user_tl(request, "minitrope", partial=True)
+    return render(request, "trompette/homepage.html", {
+        "timeline1": response1.content,
+        "timeline2": response2.content
+    })
+
 @pjaxable
 def tag_tl(request, hashtag, partial=True):
     tag = get_object_or_404(Tag, name=hashtag)

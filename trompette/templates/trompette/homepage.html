@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% block title %}<title>Trompette</title>{% endblock %}
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'trompette/bulma.css' %}"/>
+</head>
+
+<body>
+  <section class="section" style="background-color: cornsilk">
+    <div class="columns" id="columns">
+      <div class="column">
+        {{timeline1 | safe}}
+      </div>
+      <!-- <div class="column"> -->
+      <!-- </div> -->
+    </div>
+  </section>
+  <script src="{% static 'trompette/pjax.js' %}" type="text/javascript"></script>
+</body>
+</html>
