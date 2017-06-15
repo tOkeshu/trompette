@@ -165,3 +165,30 @@ def follow(request, username):
     url = reverse('account', args=(target.id,))
     return HttpResponseRedirect(url)
 
+class Bus(object):
+
+    futures = {}
+
+    def notify(self, topics, message):
+        for topic in topics:
+            future = self.futures.get(topic)
+            if not future:
+                continue
+
+            future.set_result(message)
+            del self.futures[topic]
+
+    @asyncio.coroutine
+    def notification(self, topics):
+        futures = []
+        for topic in topics:
+            future = self.futures.get(topic)
+            if not future:
+                future = self.futures[topic] = asyncio.Future()
+            futures.append(future)
+
+        done, running = yield from asyncio.wait(futures, return_when=asyncio.FIRST_COMPLETED)
+        messages = set([f.result() for f in done])
+        return messages
+
+bus = Bus()
