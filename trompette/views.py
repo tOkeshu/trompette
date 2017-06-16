@@ -3,6 +3,7 @@ import asyncio
 import re
 
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
+from django.http import StreamingHttpResponse
 from django.urls import reverse
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -164,6 +165,14 @@ def follow(request, username):
 
     url = reverse('account', args=(target.id,))
     return HttpResponseRedirect(url)
+
+class AsyncHttpResponse(StreamingHttpResponse):
+
+    async = True
+
+    def __init__(self, callback, *args, **kwargs):
+        super(StreamingHttpResponse, self).__init__(*args, **kwargs)
+        self.callback = callback
 
 class Bus(object):
 
