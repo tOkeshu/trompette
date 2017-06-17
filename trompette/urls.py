@@ -4,6 +4,7 @@ from django.contrib.staticfiles import views
 
 from .views import new_status, status, boost, reply, follow
 from .views import homepage, home_tl, user_notif, user_tl, tag_tl
+from .views import streaming
 
 urlpatterns = [
     url(r'^$', homepage, name='homepage'),
@@ -18,6 +19,7 @@ urlpatterns = [
     url(r'^web/timelines/home', home_tl, name="home_tl"),
     url(r'^web/timelines/tag/(\w+)', tag_tl, name="tag_tl"),
 
+    url(r'^streaming/', streaming),
     url(r'^admin/', admin.site.urls),
 
     url(r'static/(.+)', views.serve),

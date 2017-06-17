@@ -1,5 +1,7 @@
 from itertools import chain
+from functools import partial
 import asyncio
+import json
 import re
 
 from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotAllowed
@@ -9,6 +11,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Subquery, Prefetch
 from django.utils.timezone import now, timedelta
+from django.template import loader
 
 from .models import Status, Account, Boost, Tag
 
@@ -165,6 +168,80 @@ def follow(request, username):
 
     url = reverse('account', args=(target.id,))
     return HttpResponseRedirect(url)
+
+def polling():
+    polling.kickstarted = True
+    polling_statuses()
+
+
+def polling_statuses(since=None):
+    since = since or now() - timedelta(days=1)
+
+    def get_statuses(since):
+        return Status.objects.select_related('account') \
+                     .filter(created_at__gt=since)      \
+                     .order_by('-created_at')           \
+                     .prefetch_related('tags')
+
+    statuses = get_statuses(since)
+    while len(statuses) > 0:
+        for status in statuses:
+            topics = ['#' + t.name for t in status.tags.all()]
+            topics += [status.account.username]
+            topics += status.account.followed_by.all()
+            topics = set(topics)
+            bus.notify(topics, status)
+            since = status.created_at
+        statuses = get_statuses(since)
+
+    loop = asyncio.get_event_loop()
+    loop.call_later(15, polling_statuses, None)#now())
+
+def kickstart_polling():
+    if hasattr(polling, 'kickstarted'):
+        return
+    loop = asyncio.get_event_loop()
+    loop.call_soon(polling)
+    # polling()
+
+def streaming(request):
+    kickstart_polling()
+    callback = partial(sse, request)
+    return AsyncHttpResponse(callback, content_type="text/event-stream")
+
+def sse(request, channel):
+    topics = request.GET.getlist('topic', [])
+    topics += [a.username for a in request.user.account.following.all()]
+    topics += [request.user.account.username]
+
+    following_accounts = request.user.account.following.all()
+    while True:
+        print("wait for notifications", topics)
+        messages = yield from bus.notification(topics)
+        for message in messages:
+            print(message)
+            following = False
+            if message.account in following_accounts:
+                following = True
+
+            if type(message) is Status:
+                status = message
+                template = loader.get_template('trompette/_one_status.html')
+                content  = template.render({
+                    "status": status,
+                    "partial": True
+                }, request);
+
+                event = "status"
+                data  = json.dumps({
+                    "content": content,
+                    "account": status.account.username,
+                    # "thread" : message.thread.id,
+                    "tags"   : [tag.name for tag in status.tags.all()],
+                    "following": following
+                })
+
+            channel.send("event:{event}\ndata: {data}\n\n".format(event=event, data=data))
 
 class AsyncHttpResponse(StreamingHttpResponse):
 
