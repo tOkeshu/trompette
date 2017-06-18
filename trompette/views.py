@@ -172,6 +172,7 @@ def follow(request, username):
 def polling():
     polling.kickstarted = True
     polling_statuses()
+    polling_boosts()
 
 
 def polling_statuses(since=None):
@@ -196,6 +197,27 @@ def polling_statuses(since=None):
 
     loop = asyncio.get_event_loop()
     loop.call_later(15, polling_statuses, None)#now())
+
+def polling_boosts(since=None):
+    since = since or now() - timedelta(days=1)
+
+    def get_boosts(since):
+        return Boost.objects.select_related('account') \
+                     .select_related('status')         \
+                     .filter(at__gt=since)             \
+                     .order_by('-at')
+
+    boosts = get_boosts(since)
+    while len(boosts) > 0:
+        for boost in boosts:
+            topics = set([boost.account.username, boost.status.account.username])
+            print(topics)
+            bus.notify(topics, boost)
+            since = boost.at
+        boosts = get_boosts(since)
+
+    loop = asyncio.get_event_loop()
+    loop.call_later(15, polling_boosts, None)#now())
 
 def kickstart_polling():
     if hasattr(polling, 'kickstarted'):
@@ -240,6 +262,25 @@ def sse(request, channel):
                     "tags"   : [tag.name for tag in status.tags.all()],
                     "following": following
                 })
+            if type(message) is Boost:
+                boost, status = message, message.status
+                status.boosted_from = boost.account
+                status.boosted_at   = boost.at
+
+                template = loader.get_template('trompette/_one_status.html')
+                content  = template.render({
+                    "status": status,
+                    "partial": True
+                }, request);
+
+                event = "boost"
+                data  = json.dumps({
+                    "content": content,
+                    "account": boost.account.username,
+                    "tags"   : [],
+                    "following": following
+                })
+                print(event, data)
 
             channel.send("event:{event}\ndata: {data}\n\n".format(event=event, data=data))
 
