@@ -1,12 +1,4 @@
 (function() {
-  // var onClick = function() {
-  //   var element = this;
-  //   var url = element.href;
-
-  //   request(url, function(html) {
-  //   });
-  // }
-
   var request = function(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.onload = function(e) {
@@ -35,11 +27,12 @@
     _bindHandler: function(element, target) {
       element.addEventListener("click", function(event) {
         event.preventDefault()
-        this._loadContent(element, target);
+        info = element.dataset.info
+        this._loadContent(element, target, info);
       }.bind(this));
     },
 
-    _loadContent: function(element, target) {
+    _loadContent: function(element, target, info) {
       request(element.href, function(html) {
         var column = document.querySelector(target);
         if (!column) {
@@ -47,6 +40,7 @@
           column = document.createElement("div")
           column.classList.add("column");
           column.id = target.substr(1);
+          column.dataset.info = info
           container.append(column);
 
           var columns = document.querySelectorAll("#columns > .column");
@@ -69,4 +63,31 @@
   });
 
   pjax.bindHandlers(document);
+
+  let topics = ["#hashtags"]
+  topics = topics.map(function(topic) {
+    return "topic=" + encodeURIComponent(topic);
+  }).join('&');
+
+  let source = new EventSource('/streaming/?' + topics);
+  source.addEventListener('status', function(message) {
+    let status = JSON.parse(message.data);
+
+    let newStatus   = document.createElement("li");
+    newStatus.innerHTML = status.content;
+
+    if (status.following) {
+      let homeTL = document.querySelector('#home-tl > ul');
+      if (homeTL)
+        homeTL.prepend(newStatus)
+    }
+
+    status.tags.forEach(function(tag) {
+      let selector = '#tag-tl[data-info="' + tag + '"]> ul';
+      let tag_tl = document.querySelector(selector);
+      if (tag_tl)
+        tag_tl.prepend(newStatus)
+    });
+  });
+
 }())
