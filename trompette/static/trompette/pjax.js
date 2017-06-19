@@ -90,4 +90,21 @@
     });
   });
 
+  source.addEventListener('boost', function(message) {
+    let status = JSON.parse(message.data);
+    console.log(status);
+
+    let newStatus   = document.createElement("li");
+    newStatus.innerHTML = status.content;
+
+    if (status.following) {
+      let homeTL = document.querySelector('#home-tl > ul');
+      if (homeTL)
+        homeTL.prepend(newStatus)
+    }
+
+    let notifTL = document.querySelector('#notifications > ul');
+    if (notifTL)
+      notifTL.prepend(newStatus);
+  });
 }())
