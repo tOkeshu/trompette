@@ -15,14 +15,17 @@ def as_html(content):
 def _handle(match):
     handle = escape(match.group(1))
     url    = reverse('user_tl', args=(handle,))
-    return '<a class="to-account" href="{url}">@{handle}</a>'.format(url=url, handle=handle)
+    tpl    = '<a class="to-account" href="{url}" data-info="{handle}">@{handle}</a>'
+    return tpl.format(url=url, handle=handle)
 
 def _url(match):
     url = escape(match.group(0))
-    return '<a href="{url}">{url}</a>'.format(url=url)
+    tpl = '<a href="{url}">{url}</a>'
+    return tpl.format(url=url)
 
 def _hashtag(match):
     hashtag = escape(match.group(1))
     url     = reverse('tag_tl', args=(hashtag,))
-    return '<a class="to-hashtag" href="{url}">#{hashtag}</a>'.format(hashtag=hashtag, url=url)
+    tpl     = '<a class="to-hashtag" href="{url}" data-info="{hashtag}">#{hashtag}</a>'
+    return tpl.format(hashtag=hashtag, url=url)
 
